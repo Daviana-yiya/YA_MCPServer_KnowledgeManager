@@ -11,7 +11,7 @@ from prompts import YA_MCPServer_Prompt
     title="Knowledge Gap",
     description="分析指定主题在知识库中的覆盖情况，识别知识盲区并给出学习建议",
 )
-async def knowledge_gap(topic: str, top_k: int = 5) -> str:
+async def knowledge_gap(topic: str, top_k: int = 9999) -> str:
     """分析知识库中某主题的覆盖情况，找出知识盲区。
 
     Args:

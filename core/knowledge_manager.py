@@ -1,7 +1,7 @@
 """
 知识库管理器，整合 SQLite 与 ChromaDB 的核心业务逻辑
 - KnowledgeManager.add_note: 添加笔记
-- KnowledgeManager.search_notes: 语义 + 关键词混合搜索
+- KnowledgeManager.search_notes: 语义 + 关键词混合搜索（RRF 融合排名）
 - KnowledgeManager.update_note: 更新笔记
 - KnowledgeManager.delete_note: 删除笔记
 - KnowledgeManager.get_all_notes: 获取所有笔记
@@ -73,53 +73,80 @@ class KnowledgeManager:
         return note
 
     async def search_notes(self, query: str, top_k: int = 5) -> List[SearchResult]:
-        """混合搜索：语义搜索 + 关键词搜索，结果去重合并。
+        """混合搜索：语义搜索 + 关键词搜索，使用 RRF 融合排名。
+
+        RRF（Reciprocal Rank Fusion）不依赖异构分数的量纲，
+        只看每条笔记在各搜索列表中的排名，用 1/(k+rank) 求和后排序。
+        标题命中、内容命中、语义命中分别作为独立排名列表参与融合。
 
         Args:
             query (str): 搜索查询文本
-            top_k (int): 语义搜索返回的最大条数，默认 5
+            top_k (int): 返回最相关的前 k 条结果，默认 5
 
         Returns:
-            List[SearchResult]: 搜索结果列表，按相关性排序
+            List[SearchResult]: 搜索结果列表，按 RRF score 降序排列
 
         Raises:
             RuntimeError: 搜索失败
 
         Example:
-            [{"note": {...}, "score": 0.95}, ...]
+            [{"note": {...}, "score": 0.049}, ...]
         """
         try:
-            from core.db import get_note_by_id, search_notes_by_keyword
+            from core.db import (
+                get_note_by_id,
+                search_notes_by_title_keyword,
+                search_notes_by_content_keyword,
+            )
             from core import vector_store
         except ImportError as e:
             raise RuntimeError(f"无法导入依赖模块: {e}")
 
-        results: List[SearchResult] = []
-        seen_ids: set = set()
+        RRF_K = 60
+        rrf_scores: dict = {}
+        note_cache: dict = {}
 
-        # 语义搜索
+        def _add_rank(note_id: str, rank: int):
+            rrf_scores[note_id] = rrf_scores.get(note_id, 0.0) + 1.0 / (RRF_K + rank)
+
+        # 语义搜索排名列表
         try:
             semantic_hits = vector_store.semantic_search(
                 self.vector_store_path, self.collection_name, query, top_k
             )
-            for note_id, distance in semantic_hits:
-                if note_id in seen_ids:
-                    continue
-                note = await get_note_by_id(self.db_path, note_id)
-                if note:
-                    seen_ids.add(note_id)
-                    results.append(SearchResult(note=note, score=round(1 - distance, 4)))
+            for rank, (note_id, _) in enumerate(semantic_hits, start=1):
+                _add_rank(note_id, rank)
+                note_cache[note_id] = None  # 占位，稍后从 DB 取
         except RuntimeError:
-            pass  # 向量库为空时跳过语义搜索
+            pass  # 向量库为空时跳过
 
-        # 关键词补充搜索
-        keyword_hits = await search_notes_by_keyword(self.db_path, query)
-        for note in keyword_hits:
-            if note.id not in seen_ids:
-                seen_ids.add(note.id)
-                results.append(SearchResult(note=note, score=0.5))
+        # 标题关键词排名列表
+        title_hits = await search_notes_by_title_keyword(self.db_path, query)
+        for rank, note in enumerate(title_hits, start=1):
+            _add_rank(note.id, rank)
+            note_cache[note.id] = note
+
+        # 内容关键词排名列表（与标题列表独立，标题也命中的笔记会在两个列表中都得分）
+        content_hits = await search_notes_by_content_keyword(self.db_path, query)
+        for rank, note in enumerate(content_hits, start=1):
+            _add_rank(note.id, rank)
+            note_cache[note.id] = note
+
+        # 从 DB 补全语义搜索命中但 note_cache 中还是 None 的笔记
+        for note_id, note in note_cache.items():
+            if note is None:
+                note_cache[note_id] = await get_note_by_id(self.db_path, note_id)
+
+        # 按 RRF score 降序排列，取 top_k
+        sorted_ids = sorted(rrf_scores, key=lambda nid: rrf_scores[nid], reverse=True)
+        results = []
+        for note_id in sorted_ids[:top_k]:
+            note = note_cache.get(note_id)
+            if note:
+                results.append(SearchResult(note=note, score=round(rrf_scores[note_id], 6)))
 
         return results
+
 
     async def update_note(self, note_id: str, note_update: NoteUpdate) -> Optional[Note]:
         """更新笔记，同步更新向量存储。

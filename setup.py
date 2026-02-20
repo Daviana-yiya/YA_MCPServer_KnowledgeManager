@@ -21,6 +21,8 @@ def check_and_install_dependencies():
     required_packages = [
         "chromadb>=0.4.0",
         "aiosqlite>=0.19.0",
+        "httpx>=0.27.0",
+        "beautifulsoup4>=4.12.0",
     ]
 
     for package in required_packages:

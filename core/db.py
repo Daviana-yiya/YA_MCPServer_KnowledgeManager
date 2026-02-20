@@ -7,7 +7,9 @@ SQLite 数据库接口封装
 - delete_note: 删除笔记
 - get_all_notes: 获取所有笔记
 - get_all_tags: 获取所有标签
-- search_notes_by_keyword: 按关键词搜索笔记
+- search_notes_by_keyword: 按关键词搜索笔记（标题或内容）
+- search_notes_by_title_keyword: 按关键词搜索标题命中的笔记
+- search_notes_by_content_keyword: 按关键词搜索内容命中的笔记
 """
 
 import json
@@ -248,6 +250,60 @@ async def search_notes_by_keyword(db_path: str, keyword: str) -> List[Note]:
                 rows = await cursor.fetchall()
     except Exception as e:
         raise RuntimeError(f"关键词搜索失败: {e}")
+
+    return [_row_to_note(row) for row in rows]
+
+
+async def search_notes_by_title_keyword(db_path: str, keyword: str) -> List[Note]:
+    """按关键词搜索标题命中的笔记。
+
+    Args:
+        db_path (str): SQLite 数据库文件路径
+        keyword (str): 搜索关键词
+
+    Returns:
+        List[Note]: 标题中包含关键词的笔记列表
+
+    Raises:
+        RuntimeError: 搜索失败
+    """
+    try:
+        async with aiosqlite.connect(db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(
+                "SELECT * FROM notes WHERE title LIKE ? ORDER BY updated_at DESC",
+                (f"%{keyword}%",),
+            ) as cursor:
+                rows = await cursor.fetchall()
+    except Exception as e:
+        raise RuntimeError(f"标题关键词搜索失败: {e}")
+
+    return [_row_to_note(row) for row in rows]
+
+
+async def search_notes_by_content_keyword(db_path: str, keyword: str) -> List[Note]:
+    """按关键词搜索内容命中的笔记。
+
+    Args:
+        db_path (str): SQLite 数据库文件路径
+        keyword (str): 搜索关键词
+
+    Returns:
+        List[Note]: 内容中包含关键词的笔记列表（含标题也命中的）
+
+    Raises:
+        RuntimeError: 搜索失败
+    """
+    try:
+        async with aiosqlite.connect(db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(
+                "SELECT * FROM notes WHERE content LIKE ? ORDER BY updated_at DESC",
+                (f"%{keyword}%",),
+            ) as cursor:
+                rows = await cursor.fetchall()
+    except Exception as e:
+        raise RuntimeError(f"内容关键词搜索失败: {e}")
 
     return [_row_to_note(row) for row in rows]
 
