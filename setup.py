@@ -1,8 +1,3 @@
-from modules.YA_Common.utils.logger import get_logger
-
-logger = get_logger("setup")
-
-
 import subprocess
 import sys
 from pathlib import Path
@@ -14,7 +9,7 @@ logger = get_logger("setup")
 def install_package(package_name: str):
     """安装指定的Python包"""
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+        subprocess.check_call(["uv", "pip", "install", package_name])
         logger.info(f"Successfully installed {package_name}")
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed to install {package_name}: {e}")

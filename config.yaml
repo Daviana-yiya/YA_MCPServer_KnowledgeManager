@@ -7,7 +7,7 @@ server: # 服务器元数据
   version: 0.1.0
 
 transport: # 服务器启动方式配置
-  type: "sse" # 可选值: stdio, sse
+  type: "stdio" # 可选值: stdio, sse
   host: "127.0.0.1" # 仅在 type 为 sse 时有效，表示监听地址，默认为 0.0.0.0
   port: 12345 # 仅在 type 为 sse 时有效，表示监听端口，默认为 12345
 
@@ -22,3 +22,10 @@ logging: # 日志配置
     rotation: "10 MB"
     retention: "7 days"
     compression: "zip"
+
+knowledge:
+  database:
+    path: "data/database/knowledge.db"
+  vector_store:
+    path: "data/vector_store"
+    collection_name: "notes"
