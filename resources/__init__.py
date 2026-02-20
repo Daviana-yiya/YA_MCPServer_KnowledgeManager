@@ -5,7 +5,8 @@
 from typing import Callable, List, Optional
 from mcp.server.fastmcp import FastMCP
 from mcp.types import Icon, Annotations
-import pkgutil, importlib
+import pkgutil
+import importlib
 from modules.YA_Common.utils.logger import get_logger
 
 logger = get_logger("YA_MCPServer_Resources")
@@ -56,7 +57,6 @@ def YA_MCPServer_Resource(
         return func
 
     if callable(uri):
-        func = uri
         raise TypeError(
             "YA_MCPServer_Resource 必须指定 uri，例如：@YA_MCPServer_Resource('data://example')"
         )

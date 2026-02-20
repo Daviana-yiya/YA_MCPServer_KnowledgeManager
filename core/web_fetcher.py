@@ -30,7 +30,9 @@ async def fetch_url(url: str) -> Dict[str, str]:
         import httpx
         from bs4 import BeautifulSoup
     except ImportError as e:
-        raise RuntimeError(f"无法导入依赖模块，请确认已安装 httpx 和 beautifulsoup4: {e}")
+        raise RuntimeError(
+            f"无法导入依赖模块，请确认已安装 httpx 和 beautifulsoup4: {e}"
+        )
 
     try:
         async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:

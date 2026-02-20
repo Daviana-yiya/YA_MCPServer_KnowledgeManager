@@ -24,7 +24,14 @@ class GiteaClient:
         if token:
             self._client.headers.update({"Authorization": f"token {token}"})
 
-    def _request_with_retry(self, method: str, path: str, params: Optional[Dict] = None, max_retries: int = 3, backoff: float = 1.0):
+    def _request_with_retry(
+        self,
+        method: str,
+        path: str,
+        params: Optional[Dict] = None,
+        max_retries: int = 3,
+        backoff: float = 1.0,
+    ):
         last_exc = None
         for attempt in range(1, max_retries + 1):
             try:
@@ -33,13 +40,19 @@ class GiteaClient:
                 return resp
             except Exception as e:
                 last_exc = e
-                logger.warning("Gitea request failed (attempt %d/%d): %s", attempt, max_retries, e)
+                logger.warning(
+                    "Gitea request failed (attempt %d/%d): %s", attempt, max_retries, e
+                )
                 if attempt < max_retries:
                     time.sleep(backoff * attempt)
-        logger.error("Gitea request failed after %d attempts: %s", max_retries, last_exc)
+        logger.error(
+            "Gitea request failed after %d attempts: %s", max_retries, last_exc
+        )
         raise last_exc
 
-    def list_user_repos(self, user_id: str, per_page: int = 50, max_pages: int = 20) -> List[Dict[str, Any]]:
+    def list_user_repos(
+        self, user_id: str, per_page: int = 50, max_pages: int = 20
+    ) -> List[Dict[str, Any]]:
         """Return aggregated list of repositories for a user/org with pagination and retries.
 
         This will request pages until an empty page is returned or `max_pages` is reached.
@@ -64,7 +77,9 @@ class GiteaClient:
         resp = self._request_with_retry("GET", path)
         return resp.json()
 
-    def list_repo_branches(self, owner: str, repo: str, per_page: int = 50, max_pages: int = 10) -> List[Dict[str, Any]]:
+    def list_repo_branches(
+        self, owner: str, repo: str, per_page: int = 50, max_pages: int = 10
+    ) -> List[Dict[str, Any]]:
         path = f"/api/v1/repos/{owner}/{repo}/branches"
         page = 1
         branches: List[Dict[str, Any]] = []
@@ -80,7 +95,9 @@ class GiteaClient:
             page += 1
         return branches
 
-    def get_branch_latest_commit(self, owner: str, repo: str, branch: str) -> Optional[str]:
+    def get_branch_latest_commit(
+        self, owner: str, repo: str, branch: str
+    ) -> Optional[str]:
         """Return the latest commit SHA for a given branch (or None).
 
         Uses the branches endpoint which contains commit ref information.
@@ -93,7 +110,9 @@ class GiteaClient:
             if commit:
                 return commit.get("id") or commit.get("sha")
         except Exception:
-            logger.exception("Failed to get latest commit for %s/%s@%s", owner, repo, branch)
+            logger.exception(
+                "Failed to get latest commit for %s/%s@%s", owner, repo, branch
+            )
         return None
 
     def get_commit(self, owner: str, repo: str, sha: str) -> Optional[Dict[str, Any]]:
@@ -104,4 +123,3 @@ class GiteaClient:
         except Exception:
             logger.exception("Failed to fetch commit %s for %s/%s", sha, owner, repo)
             return None
-

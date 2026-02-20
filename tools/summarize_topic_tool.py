@@ -67,7 +67,9 @@ async def summarize_topic(topic: str, top_k: int = 5) -> Dict:
         return {
             "topic": topic,
             "note_count": len(notes),
-            "notes": [{"id": n.id, "title": n.title, "content": n.content} for n in notes],
+            "notes": [
+                {"id": n.id, "title": n.title, "content": n.content} for n in notes
+            ],
             "combined_content": "\n\n".join(combined_lines),
         }
     except RuntimeError:

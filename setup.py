@@ -1,5 +1,4 @@
 import subprocess
-import sys
 from pathlib import Path
 from modules.YA_Common.utils.logger import get_logger
 

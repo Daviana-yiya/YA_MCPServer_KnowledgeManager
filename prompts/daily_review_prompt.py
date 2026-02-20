@@ -39,8 +39,11 @@ async def daily_review(days: int = 7) -> str:
         notes = await km.get_all_notes()
 
         from datetime import datetime, timedelta, timezone
+
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-        recent_notes = [n for n in notes if n.updated_at.replace(tzinfo=timezone.utc) >= cutoff]
+        recent_notes = [
+            n for n in notes if n.updated_at.replace(tzinfo=timezone.utc) >= cutoff
+        ]
 
         if not recent_notes:
             return f"最近 {days} 天内没有新增或更新的笔记。请先通过 add_note 工具添加一些笔记，再进行每日复习。"

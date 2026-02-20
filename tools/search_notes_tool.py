@@ -3,7 +3,7 @@
 - search_notes: 通过语义搜索和关键词混合搜索笔记
 """
 
-from typing import Dict, List
+from typing import Dict
 
 from tools import YA_MCPServer_Tool
 

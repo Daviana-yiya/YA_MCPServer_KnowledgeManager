@@ -85,7 +85,9 @@ def semantic_search(
     """
     collection = _get_collection(store_path, collection_name)
     try:
-        results = collection.query(query_texts=[query], n_results=min(top_k, collection.count()))
+        results = collection.query(
+            query_texts=[query], n_results=min(top_k, collection.count())
+        )
     except Exception as e:
         raise RuntimeError(f"语义搜索失败: {e}")
 

@@ -2,10 +2,11 @@
 自动注册 tools 下的所有工具
 """
 
-from typing import Callable, List, Optional, Any
+from typing import Callable, List, Optional
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations, Icon
-import pkgutil, importlib
+import pkgutil
+import importlib
 from modules.YA_Common.utils.logger import get_logger
 
 logger = get_logger("YA_MCPServer_Tools")

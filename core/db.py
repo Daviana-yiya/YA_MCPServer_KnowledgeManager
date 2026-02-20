@@ -33,7 +33,8 @@ async def init_db(db_path: str) -> None:
     """
     try:
         async with aiosqlite.connect(db_path) as db:
-            await db.execute("""
+            await db.execute(
+                """
                 CREATE TABLE IF NOT EXISTS notes (
                     id TEXT PRIMARY KEY,
                     title TEXT NOT NULL,
@@ -42,7 +43,8 @@ async def init_db(db_path: str) -> None:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 )
-            """)
+            """
+            )
             await db.commit()
     except Exception as e:
         raise RuntimeError(f"数据库初始化失败: {e}")
@@ -84,8 +86,14 @@ async def insert_note(db_path: str, note_create: NoteCreate) -> Note:
         async with aiosqlite.connect(db_path) as db:
             await db.execute(
                 "INSERT INTO notes (id, title, content, tags, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-                (note.id, note.title, note.content, json.dumps(note.tags, ensure_ascii=False),
-                 note.created_at.isoformat(), note.updated_at.isoformat()),
+                (
+                    note.id,
+                    note.title,
+                    note.content,
+                    json.dumps(note.tags, ensure_ascii=False),
+                    note.created_at.isoformat(),
+                    note.updated_at.isoformat(),
+                ),
             )
             await db.commit()
     except Exception as e:
@@ -109,7 +117,9 @@ async def get_note_by_id(db_path: str, note_id: str) -> Optional[Note]:
     try:
         async with aiosqlite.connect(db_path) as db:
             db.row_factory = aiosqlite.Row
-            async with db.execute("SELECT * FROM notes WHERE id = ?", (note_id,)) as cursor:
+            async with db.execute(
+                "SELECT * FROM notes WHERE id = ?", (note_id,)
+            ) as cursor:
                 row = await cursor.fetchone()
     except Exception as e:
         raise RuntimeError(f"查询笔记失败: {e}")
@@ -119,7 +129,9 @@ async def get_note_by_id(db_path: str, note_id: str) -> Optional[Note]:
     return _row_to_note(row)
 
 
-async def update_note(db_path: str, note_id: str, note_update: NoteUpdate) -> Optional[Note]:
+async def update_note(
+    db_path: str, note_id: str, note_update: NoteUpdate
+) -> Optional[Note]:
     """更新笔记字段。
 
     Args:
@@ -138,7 +150,9 @@ async def update_note(db_path: str, note_id: str, note_update: NoteUpdate) -> Op
         return None
 
     new_title = note_update.title if note_update.title is not None else note.title
-    new_content = note_update.content if note_update.content is not None else note.content
+    new_content = (
+        note_update.content if note_update.content is not None else note.content
+    )
     new_tags = note_update.tags if note_update.tags is not None else note.tags
     new_updated_at = datetime.now()
 
@@ -146,8 +160,13 @@ async def update_note(db_path: str, note_id: str, note_update: NoteUpdate) -> Op
         async with aiosqlite.connect(db_path) as db:
             await db.execute(
                 "UPDATE notes SET title=?, content=?, tags=?, updated_at=? WHERE id=?",
-                (new_title, new_content, json.dumps(new_tags, ensure_ascii=False),
-                 new_updated_at.isoformat(), note_id),
+                (
+                    new_title,
+                    new_content,
+                    json.dumps(new_tags, ensure_ascii=False),
+                    new_updated_at.isoformat(),
+                    note_id,
+                ),
             )
             await db.commit()
     except Exception as e:
@@ -193,7 +212,9 @@ async def get_all_notes(db_path: str) -> List[Note]:
     try:
         async with aiosqlite.connect(db_path) as db:
             db.row_factory = aiosqlite.Row
-            async with db.execute("SELECT * FROM notes ORDER BY created_at DESC") as cursor:
+            async with db.execute(
+                "SELECT * FROM notes ORDER BY created_at DESC"
+            ) as cursor:
                 rows = await cursor.fetchall()
     except Exception as e:
         raise RuntimeError(f"获取所有笔记失败: {e}")

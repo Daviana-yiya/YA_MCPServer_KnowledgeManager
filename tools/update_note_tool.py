@@ -56,7 +56,9 @@ async def update_note(
 
         km = KnowledgeManager(db_path, vector_path, collection)
         await km.initialize()
-        note = await km.update_note(note_id, NoteUpdate(title=title, content=content, tags=tags))
+        note = await km.update_note(
+            note_id, NoteUpdate(title=title, content=content, tags=tags)
+        )
 
         if note is None:
             raise RuntimeError(f"笔记不存在: {note_id}")

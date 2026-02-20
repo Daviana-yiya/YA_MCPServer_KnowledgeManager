@@ -143,12 +143,15 @@ class KnowledgeManager:
         for note_id in sorted_ids[:top_k]:
             note = note_cache.get(note_id)
             if note:
-                results.append(SearchResult(note=note, score=round(rrf_scores[note_id], 6)))
+                results.append(
+                    SearchResult(note=note, score=round(rrf_scores[note_id], 6))
+                )
 
         return results
 
-
-    async def update_note(self, note_id: str, note_update: NoteUpdate) -> Optional[Note]:
+    async def update_note(
+        self, note_id: str, note_update: NoteUpdate
+    ) -> Optional[Note]:
         """更新笔记，同步更新向量存储。
 
         Args:
