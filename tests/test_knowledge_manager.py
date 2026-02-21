@@ -2,6 +2,7 @@
 知识库管理器单元测试
 - test_add_note: 测试添加笔记
 - test_search_notes: 测试混合搜索
+- test_search_notes_by_tag: 测试标签搜索通道
 - test_update_note: 测试更新笔记
 - test_delete_note: 测试删除笔记
 - test_get_all_notes: 测试获取所有笔记
@@ -105,6 +106,20 @@ async def test_get_all_notes(tmp_path):
 
     notes = await km.get_all_notes()
     assert len(notes) == 2
+
+
+async def test_search_notes_by_tag(tmp_path):
+    km = get_km(tmp_path)
+    await km.initialize()
+
+    await km.add_note(NoteCreate(title="笔记A", content="内容A", tags=["Python", "算法"]))
+    await km.add_note(NoteCreate(title="笔记B", content="内容B", tags=["数据库"]))
+
+    results = await km.search_notes("Python", top_k=5)
+
+    titles = [r.note.title for r in results]
+    assert "笔记A" in titles
+    assert "笔记B" not in titles
 
 
 async def test_get_all_tags(tmp_path):

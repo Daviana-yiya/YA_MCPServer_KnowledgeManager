@@ -1,7 +1,7 @@
 """
 知识库管理器，整合 SQLite 与 ChromaDB 的核心业务逻辑
 - KnowledgeManager.add_note: 添加笔记
-- KnowledgeManager.search_notes: 语义 + 关键词混合搜索（RRF 融合排名）
+- KnowledgeManager.search_notes: 语义 + 关键词 + 标签混合搜索（RRF 融合排名）
 - KnowledgeManager.update_note: 更新笔记
 - KnowledgeManager.delete_note: 删除笔记
 - KnowledgeManager.get_all_notes: 获取所有笔记
@@ -73,11 +73,11 @@ class KnowledgeManager:
         return note
 
     async def search_notes(self, query: str, top_k: int = 5) -> List[SearchResult]:
-        """混合搜索：语义搜索 + 关键词搜索，使用 RRF 融合排名。
+        """混合搜索：语义搜索 + 关键词搜索 + 标签搜索，使用 RRF 融合排名。
 
         RRF（Reciprocal Rank Fusion）不依赖异构分数的量纲，
         只看每条笔记在各搜索列表中的排名，用 1/(k+rank) 求和后排序。
-        标题命中、内容命中、语义命中分别作为独立排名列表参与融合。
+        标题命中、内容命中、标签命中、语义命中分别作为独立排名列表参与融合。
 
         Args:
             query (str): 搜索查询文本
@@ -97,6 +97,7 @@ class KnowledgeManager:
                 get_note_by_id,
                 search_notes_by_title_keyword,
                 search_notes_by_content_keyword,
+                search_notes_by_tag_keyword,
             )
             from core import vector_store
         except ImportError as e:
@@ -129,6 +130,12 @@ class KnowledgeManager:
         # 内容关键词排名列表（与标题列表独立，标题也命中的笔记会在两个列表中都得分）
         content_hits = await search_notes_by_content_keyword(self.db_path, query)
         for rank, note in enumerate(content_hits, start=1):
+            _add_rank(note.id, rank)
+            note_cache[note.id] = note
+
+        # 标签关键词排名列表
+        tag_hits = await search_notes_by_tag_keyword(self.db_path, query)
+        for rank, note in enumerate(tag_hits, start=1):
             _add_rank(note.id, rank)
             note_cache[note.id] = note
 
