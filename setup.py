@@ -15,6 +15,12 @@ def install_package(package_name: str):
         raise
 
 
+IMPORT_NAME_MAP = {
+    "beautifulsoup4": "bs4",
+    "pytest-asyncio": "pytest_asyncio",
+}
+
+
 def check_and_install_dependencies():
     """检查并安装项目依赖"""
     required_packages = [
@@ -22,12 +28,15 @@ def check_and_install_dependencies():
         "aiosqlite>=0.19.0",
         "httpx>=0.27.0",
         "beautifulsoup4>=4.12.0",
+        "pytest>=8.0.0",
+        "pytest-asyncio>=0.23.0",
     ]
 
     for package in required_packages:
         package_name = package.split(">=")[0]
+        import_name = IMPORT_NAME_MAP.get(package_name, package_name)
         try:
-            __import__(package_name)
+            __import__(import_name)
             logger.info(f"{package_name} is already installed")
         except ImportError:
             logger.info(f"Installing {package}...")

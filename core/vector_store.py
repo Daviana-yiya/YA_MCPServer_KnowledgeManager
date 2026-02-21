@@ -84,9 +84,12 @@ def semantic_search(
         [("abc123", 0.12), ("def456", 0.35)]
     """
     collection = _get_collection(store_path, collection_name)
+    count = collection.count()
+    if count == 0:
+        return []
     try:
         results = collection.query(
-            query_texts=[query], n_results=min(top_k, collection.count())
+            query_texts=[query], n_results=min(top_k, count)
         )
     except Exception as e:
         raise RuntimeError(f"语义搜索失败: {e}")
