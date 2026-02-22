@@ -4,6 +4,7 @@
 """
 
 from prompts import YA_MCPServer_Prompt
+from prompts.role import BASE_ROLE, SKILL_REVIEW
 
 
 @YA_MCPServer_Prompt(
@@ -46,7 +47,7 @@ async def daily_review(days: int = 7) -> str:
         ]
 
         if not recent_notes:
-            return f"最近 {days} 天内没有新增或更新的笔记。请先通过 add_note 工具添加一些笔记，再进行每日复习。"
+            return f"{BASE_ROLE}{SKILL_REVIEW}\n\n最近 {days} 天内没有新增或更新的笔记。请先通过 add_note 工具添加一些笔记，再进行每日复习。"
 
         lines = [
             f"请帮我复习以下 {len(recent_notes)} 条笔记内容，对每条笔记给出简短的要点总结和复习建议：\n"
@@ -57,7 +58,7 @@ async def daily_review(days: int = 7) -> str:
             if note.tags:
                 lines.append(f"标签: {', '.join(note.tags)}\n")
 
-        return "\n\n".join(lines)
+        return f"{BASE_ROLE}{SKILL_REVIEW}\n\n" + "\n\n".join(lines)
     except RuntimeError:
         raise
     except Exception as e:

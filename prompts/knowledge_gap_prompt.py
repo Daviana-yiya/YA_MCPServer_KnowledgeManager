@@ -4,6 +4,7 @@
 """
 
 from prompts import YA_MCPServer_Prompt
+from prompts.role import BASE_ROLE, SKILL_SEARCH
 
 
 @YA_MCPServer_Prompt(
@@ -42,6 +43,7 @@ async def knowledge_gap(topic: str, top_k: int = 9999) -> str:
 
         if not notes:
             return (
+                f"{BASE_ROLE}{SKILL_SEARCH}\n\n"
                 f"知识库中暂无与「{topic}」相关的笔记。\n\n"
                 f"请分析「{topic}」这一主题的核心知识体系，列出应该学习的主要子主题，"
                 f"并给出一份入门学习路线建议。"
@@ -60,7 +62,7 @@ async def knowledge_gap(topic: str, top_k: int = 9999) -> str:
             f"并给出针对性的学习建议和补充方向。"
         )
 
-        return "\n\n".join(lines)
+        return f"{BASE_ROLE}{SKILL_SEARCH}\n\n" + "\n\n".join(lines)
     except RuntimeError:
         raise
     except Exception as e:

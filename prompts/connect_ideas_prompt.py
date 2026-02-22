@@ -4,6 +4,7 @@
 """
 
 from prompts import YA_MCPServer_Prompt
+from prompts.role import BASE_ROLE, SKILL_SEARCH
 
 
 @YA_MCPServer_Prompt(
@@ -72,7 +73,7 @@ async def connect_ideas(concept_a: str, concept_b: str, top_k: int = 3) -> str:
             f"\n3. 如何将两者结合起来加深理解或解决实际问题"
         )
 
-        return "\n\n".join(lines)
+        return f"{BASE_ROLE}{SKILL_SEARCH}\n\n" + "\n\n".join(lines)
     except RuntimeError:
         raise
     except Exception as e:

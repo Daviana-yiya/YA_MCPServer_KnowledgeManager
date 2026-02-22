@@ -13,7 +13,7 @@ from resources import YA_MCPServer_Resource
     description="返回知识库中所有已使用的标签列表",
     mime_type="application/json",
 )
-def get_all_tags():
+async def get_all_tags():
     """返回知识库中所有已使用的标签列表。
 
     Returns:
@@ -26,7 +26,6 @@ def get_all_tags():
         ["Python", "算法", "数据结构", "机器学习"]
     """
     try:
-        import asyncio
         from core.knowledge_manager import KnowledgeManager
         from modules.YA_Common.utils.config import get_config
     except ImportError as e:
@@ -38,12 +37,8 @@ def get_all_tags():
         collection = get_config("knowledge.vector_store.collection_name")
 
         km = KnowledgeManager(db_path, vector_path, collection)
-
-        async def _fetch():
-            await km.initialize()
-            return await km.get_all_tags()
-
-        return asyncio.run(_fetch())
+        await km.initialize()
+        return await km.get_all_tags()
     except RuntimeError:
         raise
     except Exception as e:
