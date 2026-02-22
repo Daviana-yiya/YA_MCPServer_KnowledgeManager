@@ -11,13 +11,13 @@ from tools import YA_MCPServer_Tool
 @YA_MCPServer_Tool(
     name="search_notes",
     title="Search Notes",
-    description="搜索知识库中的笔记，支持语义搜索和关键词匹配",
+    description="搜索知识库中的笔记，支持语义搜索和关键词匹配。一定注意请将用户意图提炼为核心的关键词后再传入 query，请剔除用户输入中的口语化废话，只保留核心的技术名词，而非直接传入完整句子。(如果有多个关键词，请用空格隔开)",
 )
 async def search_notes(query: str, top_k: int = 5) -> Dict:
     """搜索知识库中的笔记。
 
     Args:
-        query (str): 搜索查询文本，支持自然语言描述
+        query (str): 提炼出的核心搜索关键词。请剔除用户输入中的"我想查询"、"关于"等口语化废话，只保留核心的技术名词（如"动态规划"、"TimeSformer"等）。如果有多个关键词，请用空格隔开
         top_k (int): 返回最相关的结果数量，默认 5
 
     Returns:

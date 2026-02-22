@@ -80,7 +80,7 @@ class KnowledgeManager:
         标题命中、内容命中、标签命中、语义命中分别作为独立排名列表参与融合。
 
         Args:
-            query (str): 搜索查询文本
+            query (str): 搜索关键词，为简洁的技术名词或短语，多个关键词用空格隔开
             top_k (int): 返回最相关的前 k 条结果，默认 5
 
         Returns:
@@ -104,6 +104,8 @@ class KnowledgeManager:
             raise RuntimeError(f"无法导入依赖模块: {e}")
 
         RRF_K = 60
+        MAX_SEMANTIC_DISTANCE = 0.9  # cosine distance 阈值，超过则认为语义不相关
+        MIN_RRF_SCORE = 1.0 / 66    # RRF 分数阈值，低于则过滤（约 0.01515）
         rrf_scores: dict = {}
         note_cache: dict = {}
 
@@ -115,39 +117,50 @@ class KnowledgeManager:
             semantic_hits = vector_store.semantic_search(
                 self.vector_store_path, self.collection_name, query, top_k
             )
-            for rank, (note_id, _) in enumerate(semantic_hits, start=1):
+            for rank, (note_id, distance) in enumerate(semantic_hits, start=1):
+                if distance > MAX_SEMANTIC_DISTANCE:
+                    continue  # 语义距离过大，跳过
                 _add_rank(note_id, rank)
                 note_cache[note_id] = None  # 占位，稍后从 DB 取
         except RuntimeError:
             pass  # 向量库为空时跳过
 
+        # 按空格拆分关键词，分别做标题/内容/标签搜索
+        # 命中即得分，rank 固定为 1，靠多次命中叠加分数区分相关性
+        keywords = query.split()
+
         # 标题关键词排名列表
-        title_hits = await search_notes_by_title_keyword(self.db_path, query)
-        for rank, note in enumerate(title_hits, start=1):
-            _add_rank(note.id, rank)
-            note_cache[note.id] = note
+        for keyword in keywords:
+            title_hits = await search_notes_by_title_keyword(self.db_path, keyword)
+            for note in title_hits:
+                _add_rank(note.id, 1)
+                note_cache[note.id] = note
 
         # 内容关键词排名列表（与标题列表独立，标题也命中的笔记会在两个列表中都得分）
-        content_hits = await search_notes_by_content_keyword(self.db_path, query)
-        for rank, note in enumerate(content_hits, start=1):
-            _add_rank(note.id, rank)
-            note_cache[note.id] = note
+        for keyword in keywords:
+            content_hits = await search_notes_by_content_keyword(self.db_path, keyword)
+            for note in content_hits:
+                _add_rank(note.id, 1)
+                note_cache[note.id] = note
 
         # 标签关键词排名列表
-        tag_hits = await search_notes_by_tag_keyword(self.db_path, query)
-        for rank, note in enumerate(tag_hits, start=1):
-            _add_rank(note.id, rank)
-            note_cache[note.id] = note
+        for keyword in keywords:
+            tag_hits = await search_notes_by_tag_keyword(self.db_path, keyword)
+            for note in tag_hits:
+                _add_rank(note.id, 1)
+                note_cache[note.id] = note
 
         # 从 DB 补全语义搜索命中但 note_cache 中还是 None 的笔记
         for note_id, note in note_cache.items():
             if note is None:
                 note_cache[note_id] = await get_note_by_id(self.db_path, note_id)
 
-        # 按 RRF score 降序排列，取 top_k
+        # 按 RRF score 降序排列，取 top_k，过滤低于阈值的结果
         sorted_ids = sorted(rrf_scores, key=lambda nid: rrf_scores[nid], reverse=True)
         results = []
         for note_id in sorted_ids[:top_k]:
+            if rrf_scores[note_id] < MIN_RRF_SCORE:
+                break
             note = note_cache.get(note_id)
             if note:
                 results.append(

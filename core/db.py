@@ -281,7 +281,7 @@ async def search_notes_by_title_keyword(db_path: str, keyword: str) -> List[Note
 
     Args:
         db_path (str): SQLite 数据库文件路径
-        keyword (str): 搜索关键词
+        keyword (str): 搜索关键词，应为简洁的技术名词或短语，用于标题的模糊匹配（LIKE）
 
     Returns:
         List[Note]: 标题中包含关键词的笔记列表
@@ -308,7 +308,7 @@ async def search_notes_by_content_keyword(db_path: str, keyword: str) -> List[No
 
     Args:
         db_path (str): SQLite 数据库文件路径
-        keyword (str): 搜索关键词
+        keyword (str): 搜索关键词，应为简洁的技术名词或短语，用于内容的模糊匹配（LIKE）
 
     Returns:
         List[Note]: 内容中包含关键词的笔记列表（含标题也命中的）
@@ -335,7 +335,7 @@ async def search_notes_by_tag_keyword(db_path: str, keyword: str) -> List[Note]:
 
     Args:
         db_path (str): SQLite 数据库文件路径
-        keyword (str): 搜索关键词
+        keyword (str): 搜索关键词，应为简洁的技术名词或短语，用于标签的模糊匹配（LIKE）
 
     Returns:
         List[Note]: 标签中包含关键词的笔记列表
