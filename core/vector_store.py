@@ -16,12 +16,16 @@ def _get_collection(store_path: str, collection_name: str):
     """
     try:
         import chromadb
+        from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
     except ImportError as e:
         raise RuntimeError(f"无法导入 chromadb，请确认已安装: {e}")
 
     try:
+        ef = SentenceTransformerEmbeddingFunction(
+            model_name="paraphrase-multilingual-MiniLM-L12-v2"
+        )
         client = chromadb.PersistentClient(path=store_path)
-        return client.get_or_create_collection(name=collection_name)
+        return client.get_or_create_collection(name=collection_name, embedding_function=ef)
     except Exception as e:
         raise RuntimeError(f"连接向量存储失败: {e}")
 

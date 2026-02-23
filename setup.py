@@ -30,6 +30,10 @@ def check_and_install_dependencies():
         "beautifulsoup4>=4.12.0",
         "pytest>=8.0.0",
         "pytest-asyncio>=0.23.0",
+        "keybert>=0.7.0",
+        "jieba>=0.42.1",
+        "scikit-learn>=1.0.0",
+        "sentence-transformers>=2.0.0",
     ]
 
     for package in required_packages:

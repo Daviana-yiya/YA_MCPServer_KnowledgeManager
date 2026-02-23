@@ -12,6 +12,7 @@
 from typing import List, Optional
 
 from core.models import Note, NoteCreate, NoteUpdate, SearchResult
+from core.keyword_extractor import extract_tags
 
 
 class KnowledgeManager:
@@ -63,6 +64,14 @@ class KnowledgeManager:
         except ImportError as e:
             raise RuntimeError(f"无法导入依赖模块: {e}")
 
+        if not note_create.tags:
+            tags = extract_tags(f"{note_create.title} {note_create.content}")
+            note_create = NoteCreate(
+                title=note_create.title,
+                content=note_create.content,
+                tags=tags,
+            )
+
         note = await insert_note(self.db_path, note_create)
         vector_store.upsert_note(
             self.vector_store_path,
@@ -104,7 +113,7 @@ class KnowledgeManager:
             raise RuntimeError(f"无法导入依赖模块: {e}")
 
         RRF_K = 60
-        MAX_SEMANTIC_DISTANCE = 0.9  # cosine distance 阈值，超过则认为语义不相关
+        MAX_SEMANTIC_DISTANCE = 1.0  # 平方 L2 阈值（= 2×cosine_distance），对应 cosine_similarity < 0.5 时过滤
         MIN_RRF_SCORE = 1.0 / 66    # RRF 分数阈值，低于则过滤（约 0.01515）
         rrf_scores: dict = {}
         note_cache: dict = {}
