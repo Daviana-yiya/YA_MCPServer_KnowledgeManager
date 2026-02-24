@@ -13,6 +13,7 @@ def _get_kw_model():
     global _kw_model
     if _kw_model is None:
         from keybert import KeyBERT
+
         _kw_model = KeyBERT(model="paraphrase-multilingual-MiniLM-L12-v2")
     return _kw_model
 

@@ -16,7 +16,9 @@ def _get_collection(store_path: str, collection_name: str):
     """
     try:
         import chromadb
-        from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+        from chromadb.utils.embedding_functions import (
+            SentenceTransformerEmbeddingFunction,
+        )
     except ImportError as e:
         raise RuntimeError(f"无法导入 chromadb，请确认已安装: {e}")
 
@@ -25,7 +27,9 @@ def _get_collection(store_path: str, collection_name: str):
             model_name="paraphrase-multilingual-MiniLM-L12-v2"
         )
         client = chromadb.PersistentClient(path=store_path)
-        return client.get_or_create_collection(name=collection_name, embedding_function=ef)
+        return client.get_or_create_collection(
+            name=collection_name, embedding_function=ef
+        )
     except Exception as e:
         raise RuntimeError(f"连接向量存储失败: {e}")
 
@@ -92,9 +96,7 @@ def semantic_search(
     if count == 0:
         return []
     try:
-        results = collection.query(
-            query_texts=[query], n_results=min(top_k, count)
-        )
+        results = collection.query(query_texts=[query], n_results=min(top_k, count))
     except Exception as e:
         raise RuntimeError(f"语义搜索失败: {e}")
 

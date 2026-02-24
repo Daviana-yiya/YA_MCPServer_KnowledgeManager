@@ -24,6 +24,7 @@ def cfg(tmp_path, monkeypatch):
         "knowledge.vector_store.collection_name": "test",
     }
     from modules.YA_Common.utils import config as _cfg_mod
+
     monkeypatch.setattr(_cfg_mod, "get_config", lambda key: paths[key])
     return paths
 
@@ -31,7 +32,9 @@ def cfg(tmp_path, monkeypatch):
 async def test_add_note_tool(cfg):
     from tools.add_note_tool import add_note
 
-    result = await add_note(title="Python装饰器", content="装饰器是语法糖", tags=["Python"])
+    result = await add_note(
+        title="Python装饰器", content="装饰器是语法糖", tags=["Python"]
+    )
 
     assert "id" in result
     assert result["title"] == "Python装饰器"
@@ -95,7 +98,9 @@ async def test_summarize_topic_tool_with_notes(cfg):
     from tools.add_note_tool import add_note
     from tools.summarize_topic_tool import summarize_topic
 
-    await add_note(title="动态规划", content="背包问题是经典的动态规划算法", tags=["算法"])
+    await add_note(
+        title="动态规划", content="背包问题是经典的动态规划算法", tags=["算法"]
+    )
     result = await summarize_topic(topic="动态规划", top_k=5)
 
     assert result["topic"] == "动态规划"
@@ -116,7 +121,9 @@ async def test_summarize_topic_tool_empty(cfg):
 async def test_fetch_url_tool():
     from tools.fetch_url_tool import fetch_url
 
-    fake_html = "<html><head><title>测试页面</title></head><body><p>正文内容</p></body></html>"
+    fake_html = (
+        "<html><head><title>测试页面</title></head><body><p>正文内容</p></body></html>"
+    )
 
     mock_response = MagicMock()
     mock_response.text = fake_html
