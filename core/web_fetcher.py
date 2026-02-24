@@ -36,7 +36,11 @@ async def fetch_url(url: str) -> Dict[str, str]:
 
     try:
         async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:
-            response = await client.get(url, headers={"User-Agent": "Mozilla/5.0"})
+            response = await client.get(url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+                "Referer": "https://www.google.com/",
+            })
             response.raise_for_status()
     except httpx.HTTPStatusError as e:
         raise RuntimeError(f"HTTP 请求失败 ({e.response.status_code}): {url}")

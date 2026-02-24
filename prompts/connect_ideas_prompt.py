@@ -10,14 +10,14 @@ from prompts.role import BASE_ROLE, SKILL_SEARCH
 @YA_MCPServer_Prompt(
     name="connect_ideas",
     title="Connect Ideas",
-    description="检索两个概念的相关笔记，引导 LLM 发现并阐述它们之间的内在联系",
+    description="检索两个概念的相关笔记，引导 LLM 发现并阐述它们之间的内在联系。请将用户提到的两个概念分别提炼为核心技术名词后传入 concept_a 和 concept_b，剔除口语化废话。获取结果后，请深入分析两个概念的相似点、区别和结合方式，以流畅的自然语言呈现给用户。",
 )
 async def connect_ideas(concept_a: str, concept_b: str, top_k: int = 3) -> str:
     """从知识库中找出两个概念的相关笔记，引导 LLM 发现它们之间的联系。
 
     Args:
-        concept_a (str): 第一个概念关键词
-        concept_b (str): 第二个概念关键词
+        concept_a (str): 第一个概念的核心技术关键词，剔除口语化废话
+        concept_b (str): 第二个概念的核心技术关键词，剔除口语化废话
         top_k (int): 每个概念检索的笔记数量，默认 3
 
     Returns:

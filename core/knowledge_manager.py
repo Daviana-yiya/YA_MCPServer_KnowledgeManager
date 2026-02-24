@@ -113,8 +113,8 @@ class KnowledgeManager:
             raise RuntimeError(f"无法导入依赖模块: {e}")
 
         RRF_K = 60
-        MAX_SEMANTIC_DISTANCE = 1.0  # 平方 L2 阈值（= 2×cosine_distance），对应 cosine_similarity < 0.5 时过滤
-        MIN_RRF_SCORE = 1.0 / 66    # RRF 分数阈值，低于则过滤（约 0.01515）
+        MAX_SEMANTIC_DISTANCE = 0.8  # 平方 L2 阈值（= 2×cosine_distance），对应 cosine_similarity < 0.6 时过滤
+        MIN_RRF_SCORE = 1.0 / 62    # RRF 分数阈值，低于则过滤（约 0.016129）
         rrf_scores: dict = {}
         note_cache: dict = {}
 

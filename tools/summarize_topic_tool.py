@@ -11,13 +11,13 @@ from tools import YA_MCPServer_Tool
 @YA_MCPServer_Tool(
     name="summarize_topic",
     title="Summarize Topic",
-    description="检索与指定主题相关的笔记内容，汇总后供 LLM 进行总结分析",
+    description="检索与指定主题相关的笔记内容，汇总后供 LLM 进行总结分析。请将用户意图提炼为核心的主题关键词后再传入 topic，剔除口语化废话，只保留核心技术名词（如有多个关键词，用空格隔开）。获取结果后，请对 combined_content 进行二次总结归纳，以流畅的自然语言呈现给用户，而非直接返回原文。",
 )
 async def summarize_topic(topic: str, top_k: int = 5) -> Dict:
     """检索与主题相关的笔记，返回汇总内容供 LLM 总结。
 
     Args:
-        topic (str): 主题关键词或描述
+        topic (str): 提炼出的核心主题关键词，剔除口语化废话，只保留核心技术名词（如有多个关键词，用空格隔开）
         top_k (int): 检索最相关的笔记数量，默认 5
 
     Returns:

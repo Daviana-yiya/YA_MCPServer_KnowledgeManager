@@ -10,13 +10,13 @@ from prompts.role import BASE_ROLE, SKILL_SEARCH
 @YA_MCPServer_Prompt(
     name="knowledge_gap",
     title="Knowledge Gap",
-    description="分析指定主题在知识库中的覆盖情况，识别知识盲区并给出学习建议",
+    description="分析指定主题在知识库中的覆盖情况，识别知识盲区并给出学习建议。请先将用户意图提炼为核心的主题关键词再传入 topic，剔除口语化废话，只保留核心技术名词（如有多个关键词，用空格隔开）。获取结果后，请分析笔记对该主题的覆盖范围，指出知识盲区，并给出针对性的学习建议。",
 )
 async def knowledge_gap(topic: str, top_k: int = 9999) -> str:
     """分析知识库中某主题的覆盖情况，找出知识盲区。
 
     Args:
-        topic (str): 要分析的主题关键词
+        topic (str): 提炼出的核心主题关键词，剔除口语化废话，只保留核心技术名词（如有多个关键词，用空格隔开）
         top_k (int): 检索相关笔记的数量，默认 5
 
     Returns:

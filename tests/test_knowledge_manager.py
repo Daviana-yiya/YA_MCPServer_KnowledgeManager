@@ -112,8 +112,8 @@ async def test_search_notes_by_tag(tmp_path):
     km = get_km(tmp_path)
     await km.initialize()
 
-    await km.add_note(NoteCreate(title="笔记A", content="内容A", tags=["Python", "算法"]))
-    await km.add_note(NoteCreate(title="笔记B", content="内容B", tags=["数据库"]))
+    await km.add_note(NoteCreate(title="笔记A", content="Python装饰器是一种语法糖，用于修改函数行为", tags=["Python", "算法"]))
+    await km.add_note(NoteCreate(title="笔记B", content="MySQL索引优化可以显著提升数据库查询性能", tags=["数据库"]))
 
     results = await km.search_notes("Python", top_k=5)
 
@@ -134,3 +134,13 @@ async def test_get_all_tags(tmp_path):
     assert "算法" in tags
     assert "数据库" in tags
     assert len(tags) == len(set(tags))
+
+
+async def test_add_note_auto_tags(tmp_path):
+    km = get_km(tmp_path)
+    await km.initialize()
+
+    note = await km.add_note(NoteCreate(title="动态规划", content="背包问题是经典的动态规划算法题"))
+
+    assert note.tags is not None
+    assert len(note.tags) > 0
