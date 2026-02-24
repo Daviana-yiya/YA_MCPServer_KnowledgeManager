@@ -7,13 +7,19 @@ ChromaDB 向量存储接口封装
 
 from typing import List, Tuple
 
+_collection_cache: dict = {}
+
 
 def _get_collection(store_path: str, collection_name: str):
-    """获取 ChromaDB 集合（内部辅助函数）。
+    """获取 ChromaDB 集合（内部辅助函数），使用模块级缓存避免重复加载模型。
 
     Raises:
         RuntimeError: 无法连接向量存储
     """
+    cache_key = (store_path, collection_name)
+    if cache_key in _collection_cache:
+        return _collection_cache[cache_key]
+
     try:
         import chromadb
         from chromadb.utils.embedding_functions import (
@@ -27,9 +33,11 @@ def _get_collection(store_path: str, collection_name: str):
             model_name="paraphrase-multilingual-MiniLM-L12-v2"
         )
         client = chromadb.PersistentClient(path=store_path)
-        return client.get_or_create_collection(
+        collection = client.get_or_create_collection(
             name=collection_name, embedding_function=ef
         )
+        _collection_cache[cache_key] = collection
+        return collection
     except Exception as e:
         raise RuntimeError(f"连接向量存储失败: {e}")
 

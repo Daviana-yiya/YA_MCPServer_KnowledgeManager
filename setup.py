@@ -30,9 +30,7 @@ def check_and_install_dependencies():
         "beautifulsoup4>=4.12.0",
         "pytest>=8.0.0",
         "pytest-asyncio>=0.23.0",
-        "keybert>=0.7.0",
         "jieba>=0.42.1",
-        "scikit-learn>=1.0.0",
         "sentence-transformers>=2.0.0",
     ]
 
@@ -69,6 +67,24 @@ def initialize_knowledge_base():
         raise
 
 
+def warmup_vector_store():
+    """预热向量存储，提前加载 SentenceTransformer 模型，避免首次工具调用超时。"""
+    import os
+
+    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+    try:
+        from core.vector_store import _get_collection
+        from modules.YA_Common.utils.config import get_config
+
+        vector_path = get_config("knowledge.vector_store.path")
+        collection_name = get_config("knowledge.vector_store.collection_name")
+        _get_collection(vector_path, collection_name)
+        logger.info("Vector store warmed up.")
+    except Exception as e:
+        logger.warning(f"Vector store warmup failed (non-fatal): {e}")
+
+
 def setup():
     """Setup your environment and dependencies here."""
     try:
@@ -79,6 +95,9 @@ def setup():
 
         # 初始化知识库
         initialize_knowledge_base()
+
+        # 预热向量存储（提前加载模型，避免首次调用超时）
+        warmup_vector_store()
 
         logger.info("Setup complete.")
 
